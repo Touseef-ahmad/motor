@@ -2,6 +2,14 @@
 
 A full-stack car management application with Expo React Native mobile frontend and Express.js backend with PostgreSQL.
 
+## 🚀 Quick Deploy to Render
+
+**Deploy the backend in minutes!** 
+
+👉 **[Quick Deploy Guide](./RENDER_DEPLOY.md)** | **[Full Deployment Guide](./DEPLOYMENT.md)**
+
+The backend API is ready to deploy to [Render.com](https://render.com) with one click using the included Blueprint configuration.
+
 ## 🏗️ Project Structure
 
 This is a monorepo containing:
@@ -329,11 +337,35 @@ motor/
 - Data stored in PostgreSQL database
 - Secure API communication
 - Multi-device synchronization
-- AWS RDS for production deployment
+- Easy deployment to Render, AWS RDS, or other cloud providers
 
-## 🌩️ AWS RDS Deployment
+## 🌩️ Backend Deployment
 
-### Setting Up PostgreSQL on AWS RDS
+### 🚀 Render.com (Recommended - Easiest)
+
+Deploy with one click using Render's Blueprint feature!
+
+**See [RENDER_DEPLOY.md](./RENDER_DEPLOY.md) for quick start guide.**
+
+**Advantages:**
+- ✅ Free tier available
+- ✅ Automatic deployments from Git
+- ✅ Built-in PostgreSQL database
+- ✅ SSL certificates included
+- ✅ Zero configuration needed
+
+**Quick Steps:**
+1. Push code to GitHub
+2. Create Blueprint in Render Dashboard
+3. Your API is live at `https://motor-api.onrender.com`
+
+For detailed instructions, see **[DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+### AWS RDS (Alternative - More Control)
+
+For AWS deployment, see the detailed guide in [DEPLOYMENT.md](./DEPLOYMENT.md#aws-deployment).
+
+**Setting Up PostgreSQL on AWS RDS**
 
 1. **Create RDS Instance**
    ```bash

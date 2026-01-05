@@ -2,14 +2,21 @@
 
 Express.js backend with PostgreSQL for the Motor car management app.
 
+## 🚀 Quick Deploy to Render
+
+**Deploy in minutes!** See the [Quick Deploy Guide](../RENDER_DEPLOY.md) or [Full Deployment Guide](../DEPLOYMENT.md)
+
+The backend is configured for one-click deployment to Render.com using Blueprint.
+
 ## 🚀 Features
 
 - RESTful API for car management
 - PostgreSQL database with Sequelize ORM
 - TypeScript for type safety
-- AWS RDS ready configuration
+- Render & AWS RDS ready configuration
 - CORS enabled for mobile app integration
 - Request validation and error handling
+- Automatic SSL/TLS in production
 
 ## 📋 Prerequisites
 
