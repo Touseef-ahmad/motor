@@ -2,6 +2,16 @@
 
 A full-stack car management application with Expo React Native mobile frontend and Express.js backend with PostgreSQL.
 
+## 🎉 Live Backend API
+
+**The backend is now deployed and live!** 
+
+✅ **API URL**: `https://motor-api-ogln.onrender.com/api`  
+✅ **Health Check**: `https://motor-api-ogln.onrender.com/health`  
+✅ **Frontend**: Configured to use the deployed API
+
+The mobile app is now connected to the cloud backend for seamless data synchronization across devices.
+
 ## 🚀 Quick Deploy to Render
 
 **Deploy the backend in minutes!** 
@@ -327,23 +337,29 @@ motor/
 
 ## 🔒 Privacy & Data
 
-### Local Storage Mode
+### Backend Mode (Currently Active) ☁️
+- **Cloud API**: Connected to `https://motor-api-ogln.onrender.com`
+- Data stored in PostgreSQL database
+- Secure API communication with fallback to local cache
+- Multi-device synchronization enabled
+- AsyncStorage used as offline cache
+
+**Note**: You can disable backend mode by setting `USE_BACKEND=false` in `expo-app/src/config/api.ts`
+
+### Local Storage Mode (Optional)
 - All data stored locally on device using AsyncStorage
 - No data sent to external servers
 - No account required
 - Complete privacy and control
-
-### Backend Mode (Optional)
-- Data stored in PostgreSQL database
-- Secure API communication
-- Multi-device synchronization
-- Easy deployment to Render, AWS RDS, or other cloud providers
+- Set `USE_BACKEND=false` to enable
 
 ## 🌩️ Backend Deployment
 
-### 🚀 Render.com (Recommended - Easiest)
+### 🚀 Render.com (Already Deployed! ✅)
 
-Deploy with one click using Render's Blueprint feature!
+The backend is **already live** at `https://motor-api-ogln.onrender.com`!
+
+Deploy your own instance using Render's Blueprint feature:
 
 **See [RENDER_DEPLOY.md](./RENDER_DEPLOY.md) for quick start guide.**
 
@@ -357,7 +373,7 @@ Deploy with one click using Render's Blueprint feature!
 **Quick Steps:**
 1. Push code to GitHub
 2. Create Blueprint in Render Dashboard
-3. Your API is live at `https://motor-api.onrender.com`
+3. Your API is live at `https://motor-api-[your-name].onrender.com`
 
 For detailed instructions, see **[DEPLOYMENT.md](./DEPLOYMENT.md)**
 
