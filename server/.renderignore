@@ -1,0 +1,10 @@
+# Files to exclude from Render deployment
+.git
+.gitignore
+.env.example
+node_modules
+src
+*.log
+.DS_Store
+*.md
+tsconfig.json

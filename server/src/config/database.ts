@@ -3,21 +3,41 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const sequelize = new Sequelize({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'motor_db',
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  pool: {
-    max: 10,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  }
-});
+// Render and other PaaS providers use DATABASE_URL
+const DATABASE_URL = process.env.DATABASE_URL;
+
+const sequelize = DATABASE_URL
+  ? new Sequelize(DATABASE_URL, {
+      dialect: 'postgres',
+      logging: process.env.NODE_ENV === 'development' ? console.log : false,
+      dialectOptions: {
+        ssl: process.env.NODE_ENV === 'production' ? {
+          require: true,
+          rejectUnauthorized: true // Render uses valid SSL certificates
+        } : false
+      },
+      pool: {
+        max: 10,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      }
+    })
+  : new Sequelize({
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME || 'motor_db',
+      username: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || '',
+      dialect: 'postgres',
+      logging: process.env.NODE_ENV === 'development' ? console.log : false,
+      pool: {
+        max: 10,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      }
+    });
 
 export default sequelize;
 
@@ -26,13 +46,26 @@ export const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
     
-    // Sync models in development
+    // Sync models - use alter in development, basic sync in production
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
-      console.log('✅ Database models synchronized.');
+      console.log('✅ Database models synchronized (development mode).');
+    } else {
+      // In production, only create tables if they don't exist
+      await sequelize.sync({ alter: false });
+      console.log('✅ Database models synchronized (production mode).');
     }
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
-    process.exit(1);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Unable to connect to the database:', errorMessage);
+    console.error('Full error details:', error);
+    
+    // In production, we want to fail fast and let the platform restart the service
+    if (process.env.NODE_ENV === 'production') {
+      console.error('💥 Database connection failed in production. Exiting...');
+      process.exit(1);
+    }
+    
+    throw error;
   }
 };
