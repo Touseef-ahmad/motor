@@ -12,7 +12,7 @@ import expenseRoutes from './routes/expenseRoutes';
 dotenv.config();
 
 const app: Application = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 // Middleware
 app.use(helmet());
@@ -49,7 +49,8 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(PORT, () => {
+    const HOST = '0.0.0.0'; // Listen on all interfaces (required for Render)
+    app.listen(PORT, HOST, () => {
       console.log(`🚗 Motor API server is running on port ${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
