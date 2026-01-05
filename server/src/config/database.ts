@@ -13,7 +13,7 @@ const sequelize = DATABASE_URL
       dialectOptions: {
         ssl: process.env.NODE_ENV === 'production' ? {
           require: true,
-          rejectUnauthorized: false
+          rejectUnauthorized: true // Render uses valid SSL certificates
         } : false
       },
       pool: {
@@ -56,7 +56,16 @@ export const connectDB = async () => {
       console.log('✅ Database models synchronized (production mode).');
     }
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Unable to connect to the database:', errorMessage);
+    console.error('Full error details:', error);
+    
+    // In production, we want to fail fast and let the platform restart the service
+    if (process.env.NODE_ENV === 'production') {
+      console.error('💥 Database connection failed in production. Exiting...');
+      process.exit(1);
+    }
+    
     throw error;
   }
 };
