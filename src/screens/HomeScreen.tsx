@@ -63,7 +63,7 @@ const HomeScreen: React.FC = () => {
       currentMileage: carDetails?.currentMileage || 0,
       images: carDetails?.images || [],
       emoji: emoji,
-      backgroundStyle: carDetails?.backgroundStyle || 'gradient',
+      backgroundStyle: (carDetails?.backgroundStyle || 'gradient') as 'solid' | 'gradient' | 'animated',
       backgroundColor: carDetails?.backgroundColor || '#007AFF',
       secondaryColor: carDetails?.secondaryColor || '#5AC8FA',
     };
@@ -84,7 +84,7 @@ const HomeScreen: React.FC = () => {
       currentMileage: carDetails?.currentMileage || 0,
       images: carDetails?.images || [],
       emoji: carDetails?.emoji || '🚗',
-      backgroundStyle: 'gradient',
+      backgroundStyle: 'gradient' as const,
       backgroundColor: bg.primary,
       secondaryColor: bg.secondary,
     };

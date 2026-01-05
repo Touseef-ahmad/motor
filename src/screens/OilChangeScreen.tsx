@@ -89,7 +89,7 @@ const OilChangeScreen: React.FC = () => {
           {item.nextChangeMileage && (
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Next Change:</Text>
-              <Text style={[styles.detailValue, isUpcoming && styles.warningText]}>
+              <Text style={[styles.detailValue, isUpcoming ? styles.warningText : null]}>
                 {item.nextChangeMileage.toLocaleString()} km
                 {isUpcoming && ' ⚠️'}
               </Text>
