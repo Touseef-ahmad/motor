@@ -1,0 +1,23 @@
+node_modules/
+.expo/
+.expo-shared/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+.DS_Store
+.env
+*.log
+
+# Backend build
+server/dist/
+
+# Expo app dependencies
+expo-app/node_modules/
+expo-app/.expo/
+
