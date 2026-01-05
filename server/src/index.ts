@@ -49,8 +49,8 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
 const startServer = async () => {
   try {
     await connectDB();
-    const HOST = '0.0.0.0'; // Listen on all interfaces (required for Render)
-    app.listen(PORT, HOST, () => {
+    // Listen on all interfaces (required for Render and other PaaS providers)
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚗 Motor API server is running on port ${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
