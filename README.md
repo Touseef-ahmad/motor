@@ -1,10 +1,34 @@
 # Motor - Car Management App 🚗
 
-A feature-rich Expo React Native mobile application for comprehensive car management and tracking.
+A full-stack car management application with Expo React Native mobile frontend and Express.js backend with PostgreSQL.
+
+## 🏗️ Project Structure
+
+This is a monorepo containing:
+
+```
+/motor
+  /expo-app    # React Native mobile frontend
+  /server      # Node.js/Express backend with PostgreSQL
+```
+
+### Expo App (Mobile Frontend)
+- React Native mobile application
+- Snapchat-style home screen with customizable car profiles
+- Local-first with optional backend sync
+- See [expo-app README](./expo-app/README.md) for details
+
+### Server (Backend API)
+- Express.js REST API
+- PostgreSQL database with Sequelize ORM
+- AWS RDS ready for production deployment
+- See [server README](./server/README.md) for details
 
 ## 📱 Overview
 
 Motor is a mobile app designed to help car owners track and manage all aspects of their vehicle ownership, from maintenance schedules to fuel consumption and expenses. The app features a unique Snapchat-style home screen with customizable emoji car profiles and animated backgrounds.
+
+**New**: Backend API provides scalable cloud storage and multi-device sync capabilities.
 
 ## ✨ Features
 
@@ -81,25 +105,69 @@ Motor is a mobile app designed to help car owners track and manage all aspects o
 - **Empty States**: Helpful guidance for new users
 
 ### 💾 Data Management
-- **AsyncStorage Persistence**: All data saved locally
-- **Real-time Updates**: Instant UI updates on data changes
+- **Backend API**: RESTful API with PostgreSQL database
+- **Local Storage**: AsyncStorage for offline capabilities
 - **Context API**: Centralized state management
+- **Real-time Sync**: Optional cloud synchronization
+- **AWS RDS**: Production-ready scalable database
 - **Automatic Sorting**: Chronological ordering of records
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v18 or higher)
 - npm or yarn
+- PostgreSQL 12 or higher
 - Expo CLI
 - iOS Simulator (for iOS development) or Android Emulator (for Android development)
 
 ### Installation
 
+#### Option 1: Full Stack Setup (Recommended)
+
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Touseef-ahmad/motor.git
    cd motor
+   ```
+
+2. **Setup Backend Server**
+   ```bash
+   cd server
+   npm install
+   
+   # Create and configure .env file
+   cp .env.example .env
+   # Edit .env with your PostgreSQL credentials
+   
+   # Create PostgreSQL database
+   createdb motor_db
+   
+   # Start the server
+   npm run dev
+   ```
+   
+   The backend will run on `http://localhost:3000`
+
+3. **Setup Mobile App**
+   ```bash
+   cd ../expo-app
+   npm install
+   
+   # Create asset images (see expo-app/assets/README_ASSETS.txt)
+   
+   # Update API endpoint in src/config/api.ts
+   
+   # Start the app
+   npm start
+   ```
+
+#### Option 2: Mobile App Only (Local Storage)
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Touseef-ahmad/motor.git
+   cd motor/expo-app
    ```
 
 2. **Install dependencies**
@@ -165,43 +233,65 @@ Motor is a mobile app designed to help car owners track and manage all aspects o
 
 ```
 motor/
-├── assets/                      # App assets (icons, images)
-├── src/
-│   ├── contexts/
-│   │   └── CarContext.tsx      # Global state management
-│   ├── screens/
-│   │   ├── HomeScreen.tsx      # Snapchat-style home screen
-│   │   ├── OilChangeScreen.tsx # Oil change tracker
-│   │   ├── FuelLogsScreen.tsx  # Fuel logs and average
-│   │   ├── ExpensesScreen.tsx  # Expense tracker
-│   │   └── CarDetailsScreen.tsx # Car details and photos
-│   ├── types/
-│   │   └── index.ts            # TypeScript type definitions
-│   └── components/              # Reusable components (future)
-├── App.tsx                      # Main app component with navigation
-├── app.json                     # Expo configuration
-├── package.json                 # Dependencies
-├── tsconfig.json                # TypeScript configuration
-├── babel.config.js              # Babel configuration
+├── expo-app/                    # Mobile frontend
+│   ├── assets/                  # App assets (icons, images)
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── api.ts           # API configuration
+│   │   ├── contexts/
+│   │   │   └── CarContext.tsx   # Global state management
+│   │   ├── screens/
+│   │   │   ├── HomeScreen.tsx   # Snapchat-style home screen
+│   │   │   ├── OilChangeScreen.tsx
+│   │   │   ├── FuelLogsScreen.tsx
+│   │   │   ├── ExpensesScreen.tsx
+│   │   │   └── CarDetailsScreen.tsx
+│   │   └── types/
+│   │       └── index.ts         # TypeScript type definitions
+│   ├── App.tsx                  # Main app component
+│   ├── app.json                 # Expo configuration
+│   └── package.json             # App dependencies
+├── server/                      # Backend API
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.ts      # PostgreSQL connection
+│   │   ├── models/              # Sequelize models
+│   │   │   ├── CarDetails.ts
+│   │   │   ├── OilChange.ts
+│   │   │   ├── FuelLog.ts
+│   │   │   └── Expense.ts
+│   │   ├── controllers/         # Route controllers
+│   │   ├── routes/              # API routes
+│   │   └── index.ts             # Express server
+│   ├── .env.example             # Environment template
+│   └── package.json             # Server dependencies
+├── package.json                 # Monorepo scripts
 ├── README.md                    # This file
-└── TODO.md                      # Future features and improvements
+└── TODO.md                      # Future features
 
 ```
 
 ## 🛠️ Technologies Used
 
-- **React Native**: Mobile app framework
-- **Expo**: Development platform and tooling
-- **TypeScript**: Type-safe JavaScript
-- **React Navigation**: Navigation library
-  - Bottom Tabs Navigator
-  - Stack Navigator (for future screens)
-- **AsyncStorage**: Local data persistence
+### Mobile App (Expo)
+- **React Native** 0.74.5: Mobile app framework
+- **Expo** ~51.0.0: Development platform and tooling
+- **TypeScript** 5.1.3: Type-safe JavaScript
+- **React Navigation** 6.x: Navigation library
+- **AsyncStorage** 1.23.1: Local data persistence
 - **Context API**: State management
 - **Expo Linear Gradient**: Gradient backgrounds
 - **Expo Image Picker**: Camera and gallery access
 - **React Native Reanimated**: Smooth animations
-- **Ionicons**: Icon library
+
+### Backend Server (Express)
+- **Express.js** 4.18: Web framework
+- **PostgreSQL**: Relational database
+- **Sequelize** 6.35: ORM for PostgreSQL
+- **TypeScript**: Type-safe backend
+- **Helmet**: Security headers
+- **CORS**: Cross-origin support
+- **Morgan**: Request logging
 
 ## 📊 Data Models
 
@@ -229,10 +319,58 @@ motor/
 
 ## 🔒 Privacy & Data
 
-- All data is stored locally on the device using AsyncStorage
-- No data is sent to external servers
+### Local Storage Mode
+- All data stored locally on device using AsyncStorage
+- No data sent to external servers
 - No account required
-- Photos are stored locally on the device
+- Complete privacy and control
+
+### Backend Mode (Optional)
+- Data stored in PostgreSQL database
+- Secure API communication
+- Multi-device synchronization
+- AWS RDS for production deployment
+
+## 🌩️ AWS RDS Deployment
+
+### Setting Up PostgreSQL on AWS RDS
+
+1. **Create RDS Instance**
+   ```bash
+   aws rds create-db-instance \
+     --db-instance-identifier motor-db \
+     --db-instance-class db.t3.micro \
+     --engine postgres \
+     --master-username admin \
+     --master-user-password YourSecurePassword \
+     --allocated-storage 20
+   ```
+
+2. **Configure Security Group**
+   - Allow inbound traffic on port 5432
+   - Add your server's IP address
+   - Configure VPC settings
+
+3. **Update Server Configuration**
+   ```env
+   DB_HOST=motor-db.xxxxx.us-east-1.rds.amazonaws.com
+   DB_PORT=5432
+   DB_NAME=motor_db
+   DB_USER=admin
+   DB_PASSWORD=YourSecurePassword
+   ```
+
+4. **Deploy Backend**
+   - Deploy to AWS EC2, ECS, or Elastic Beanstalk
+   - Configure environment variables
+   - Set up SSL/TLS for secure connections
+
+5. **Update Mobile App**
+   - Set `USE_BACKEND=true` in `expo-app/src/config/api.ts`
+   - Update `API_URL` to your production backend URL
+   - Rebuild and redeploy the app
+
+See `/server/README.md` for detailed deployment instructions.
 
 ## 🤝 Contributing
 

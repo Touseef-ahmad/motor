@@ -11,3 +11,13 @@ npm-debug.*
 *.orig.*
 web-build/
 .DS_Store
+.env
+*.log
+
+# Backend build
+server/dist/
+
+# Expo app dependencies
+expo-app/node_modules/
+expo-app/.expo/
+
