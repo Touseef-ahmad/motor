@@ -2,11 +2,11 @@
 // Set USE_BACKEND to true to use the Express backend API
 // Set to false to use local AsyncStorage only
 
-export const USE_BACKEND = false; // Set to true when backend is ready
+export const USE_BACKEND = true; // Backend is now deployed and ready!
 
 export const API_URL = __DEV__ 
   ? 'http://localhost:3000/api'  // Development
-  : 'https://your-api-domain.com/api'; // Production
+  : 'https://motor-api-ogln.onrender.com/api'; // Production
 
 export const API_ENDPOINTS = {
   cars: '/cars',
