@@ -16,8 +16,9 @@ const apiRequest = async (endpoint: string, options?: RequestInit) => {
   const response = await fetch(url, defaultOptions);
   
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(errorData.error || `HTTP ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+    throw new Error(errorMessage);
   }
 
   return response.json();

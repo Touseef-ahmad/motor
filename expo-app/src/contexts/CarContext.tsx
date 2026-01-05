@@ -21,6 +21,9 @@ export const CarProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [carId, setCarId] = useState<string | null>(null); // Backend car ID
 
+  // Helper to check if backend is available and car ID exists
+  const canUseBackend = () => USE_BACKEND && carId !== null;
+
   useEffect(() => {
     loadData();
   }, []);
@@ -29,20 +32,40 @@ export const CarProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       if (USE_BACKEND) {
         // Load from API
-        const storedCarId = await AsyncStorage.getItem(STORAGE_KEYS.CAR_ID);
+        let currentCarId = await AsyncStorage.getItem(STORAGE_KEYS.CAR_ID);
         
-        if (storedCarId) {
-          // Fetch existing car data from API
+        // If no car ID stored, try to get first car
+        if (!currentCarId) {
           try {
-            const car = await CarAPI.getCarDetails(storedCarId);
-            setCarId(storedCarId);
+            const cars = await CarAPI.getAllCars();
+            if (cars.length > 0) {
+              currentCarId = cars[0].id;
+              await AsyncStorage.setItem(STORAGE_KEYS.CAR_ID, currentCarId);
+              setCarId(currentCarId);
+            } else {
+              // No cars in backend, load from local storage
+              await loadFromAsyncStorage();
+              return;
+            }
+          } catch (error) {
+            console.error('Error fetching cars from API:', error);
+            await loadFromAsyncStorage();
+            return;
+          }
+        }
+        
+        // Fetch car data from API
+        if (currentCarId) {
+          try {
+            const car = await CarAPI.getCarDetails(currentCarId);
+            setCarId(currentCarId);
             setCarDetails(car);
             
             // Fetch related data
             const [oilChangesData, fuelLogsData, expensesData] = await Promise.all([
-              OilChangeAPI.getOilChanges(storedCarId),
-              FuelLogAPI.getFuelLogs(storedCarId),
-              ExpenseAPI.getExpenses(storedCarId),
+              OilChangeAPI.getOilChanges(currentCarId),
+              FuelLogAPI.getFuelLogs(currentCarId),
+              ExpenseAPI.getExpenses(currentCarId),
             ]);
             
             setOilChanges(oilChangesData.sort((a, b) => 
@@ -63,24 +86,6 @@ export const CarProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           } catch (error) {
             console.error('Error loading from API, falling back to cache:', error);
             // Fall back to AsyncStorage cache
-            await loadFromAsyncStorage();
-          }
-        } else {
-          // No car ID stored, try to get first car or load from cache
-          try {
-            const cars = await CarAPI.getAllCars();
-            if (cars.length > 0) {
-              const firstCar = cars[0];
-              await AsyncStorage.setItem(STORAGE_KEYS.CAR_ID, firstCar.id);
-              setCarId(firstCar.id);
-              // Recursively load data for this car
-              await loadData();
-            } else {
-              // No cars in backend, load from local storage
-              await loadFromAsyncStorage();
-            }
-          } catch (error) {
-            console.error('Error fetching cars from API:', error);
             await loadFromAsyncStorage();
           }
         }
@@ -138,9 +143,9 @@ export const CarProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const addOilChange = async (oilChange: Omit<OilChange, 'id'>) => {
     try {
-      if (USE_BACKEND && carId) {
+      if (canUseBackend()) {
         // Create in API
-        const created = await OilChangeAPI.createOilChange(carId, oilChange);
+        const created = await OilChangeAPI.createOilChange(carId!, oilChange);
         const updated = [...oilChanges, created].sort((a, b) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
         );
@@ -184,9 +189,9 @@ export const CarProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const addFuelLog = async (fuelLog: Omit<FuelLog, 'id'>) => {
     try {
-      if (USE_BACKEND && carId) {
+      if (canUseBackend()) {
         // Create in API
-        const created = await FuelLogAPI.createFuelLog(carId, fuelLog);
+        const created = await FuelLogAPI.createFuelLog(carId!, fuelLog);
         const updated = [...fuelLogs, created].sort((a, b) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
         );
@@ -230,9 +235,9 @@ export const CarProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const addExpense = async (expense: Omit<Expense, 'id'>) => {
     try {
-      if (USE_BACKEND && carId) {
+      if (canUseBackend()) {
         // Create in API
-        const created = await ExpenseAPI.createExpense(carId, expense);
+        const created = await ExpenseAPI.createExpense(carId!, expense);
         const updated = [...expenses, created].sort((a, b) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
         );
