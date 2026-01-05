@@ -2,6 +2,14 @@
 
 React Native mobile application for the Motor car management system.
 
+## 🎉 Now Connected to Cloud Backend!
+
+The app is now configured to use the live backend API at `https://motor-api-ogln.onrender.com/api`
+
+✅ **Cloud synchronization enabled**  
+✅ **Multi-device support**  
+✅ **Offline caching with AsyncStorage**
+
 ## Features
 
 - Snapchat-style home screen with customizable car emoji profiles
@@ -9,7 +17,7 @@ React Native mobile application for the Motor car management system.
 - Fuel consumption logging and average calculation
 - Expense tracking by category
 - Car details management with photo gallery
-- Offline-first with optional backend sync
+- **Cloud backend integration** with offline-first architecture
 
 ## Prerequisites
 
@@ -36,13 +44,17 @@ React Native mobile application for the Motor car management system.
 
    See `assets/README_ASSETS.txt` for more details.
 
-3. **Configure API endpoint (if using backend)**
+3. **API Configuration**
    
-   Create `src/config/api.ts`:
-   ```typescript
-   export const API_URL = 'http://localhost:3000/api';
-   // For production: 'https://your-api-domain.com/api'
+   The app is pre-configured to use the deployed backend at:
    ```
+   https://motor-api-ogln.onrender.com/api
+   ```
+   
+   To use a different backend or local storage only:
+   - Edit `src/config/api.ts`
+   - Set `USE_BACKEND = false` for local-only mode
+   - Or update `API_URL` to your custom backend URL
 
 4. **Start the development server**
    ```bash
