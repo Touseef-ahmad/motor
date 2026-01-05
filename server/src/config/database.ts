@@ -13,7 +13,7 @@ const sequelize = DATABASE_URL
       dialectOptions: {
         ssl: process.env.NODE_ENV === 'production' ? {
           require: true,
-          rejectUnauthorized: true // Render uses valid SSL certificates
+          rejectUnauthorized: false // Render uses self-signed certificates
         } : false
       },
       pool: {
