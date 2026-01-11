@@ -26,6 +26,13 @@ export interface OilChange {
   nextChangeDate?: string;
 }
 
+export enum TrackingState {
+  Idle = 'idle',
+  BeforeRefuelPending = 'before_refuel_pending',
+  AfterRefuelPending = 'after_refuel_pending',
+  Inconsistent = 'inconsistent',
+}
+
 export interface FuelLog {
   id: string;
   date: string;
@@ -36,6 +43,12 @@ export interface FuelLog {
   fuelType: 'Regular' | 'Premium' | 'Diesel' | 'Electric';
   fullTank: boolean;
   notes?: string;
+  fuelLevel?: number; // 0-1 (E to F)
+  isBeforeRefuel?: boolean;
+  isAfterRefuel?: boolean;
+  linkedLogId?: string; // ID of the paired before/after log
+  trackingState?: TrackingState;
+  isPartialRefuel?: boolean;
 }
 
 export interface Expense {

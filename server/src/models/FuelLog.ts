@@ -12,6 +12,12 @@ interface FuelLogAttributes {
   fuelType: 'Regular' | 'Premium' | 'Diesel' | 'Electric';
   fullTank: boolean;
   notes?: string;
+  fuelLevel?: number;
+  isBeforeRefuel?: boolean;
+  isAfterRefuel?: boolean;
+  linkedLogId?: string;
+  trackingState?: string;
+  isPartialRefuel?: boolean;
 }
 
 interface FuelLogCreationAttributes extends Optional<FuelLogAttributes, 'id'> {}
@@ -28,6 +34,12 @@ class FuelLog extends Model<FuelLogAttributes, FuelLogCreationAttributes>
   public fuelType!: 'Regular' | 'Premium' | 'Diesel' | 'Electric';
   public fullTank!: boolean;
   public notes?: string;
+  public fuelLevel?: number;
+  public isBeforeRefuel?: boolean;
+  public isAfterRefuel?: boolean;
+  public linkedLogId?: string;
+  public trackingState?: string;
+  public isPartialRefuel?: boolean;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -82,6 +94,33 @@ FuelLog.init(
     notes: {
       type: DataTypes.TEXT,
       allowNull: true,
+    },
+    fuelLevel: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    isBeforeRefuel: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
+    isAfterRefuel: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
+    linkedLogId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    trackingState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    isPartialRefuel: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
     },
   },
   {
