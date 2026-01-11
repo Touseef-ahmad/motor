@@ -3,7 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { connectDB } from './config/database';
+import swaggerSpec from './config/swagger';
 import carRoutes from './routes/carRoutes';
 import oilChangeRoutes from './routes/oilChangeRoutes';
 import fuelLogRoutes from './routes/fuelLogRoutes';
@@ -23,7 +25,28 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Motor API Documentation',
+}));
+
 // Health check route
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Check if the API is running
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: API is running successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthCheck'
+ */
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', message: 'Motor API is running' });
 });
