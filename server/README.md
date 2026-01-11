@@ -11,6 +11,7 @@ The backend is configured for one-click deployment to Render.com using Blueprint
 ## 🚀 Features
 
 - RESTful API for car management
+- **Swagger/OpenAPI documentation** - Interactive API docs at `/api-docs`
 - PostgreSQL database with Sequelize ORM
 - TypeScript for type safety
 - Render & AWS RDS ready configuration
@@ -112,6 +113,20 @@ npm start
 The server will start on `http://localhost:3000`
 
 ## 📡 API Endpoints
+
+### Swagger Documentation
+Access the interactive API documentation at:
+```
+http://localhost:3000/api-docs
+```
+
+The Swagger UI provides:
+- Complete API reference with request/response examples
+- Interactive testing interface
+- Schema definitions for all data models
+- Authentication testing (when applicable)
+
+For more details, see [SWAGGER_DOCUMENTATION.md](./SWAGGER_DOCUMENTATION.md)
 
 ### Health Check
 ```
