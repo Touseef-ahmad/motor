@@ -1,6 +1,14 @@
 import { useMemo } from 'react';
 import { FuelLog, TrackingState } from '../types';
 
+// Threshold constants for fuel level detection
+const FUEL_LEVEL_JUMP_THRESHOLD = 0.3; // 30% increase suggests refuel
+const FUEL_LEVEL_UNCHANGED_THRESHOLD = 0.05; // 5% tolerance for "unchanged"
+const REFUEL_DETECTION_THRESHOLD = 0.1; // 10% increase indicates refuel
+const FULL_TANK_THRESHOLD = 0.9; // 90% or above is considered full
+const LOW_FUEL_THRESHOLD = 0.5; // Below 50% is considered low
+const LARGE_MILEAGE_GAP = 1000; // km
+
 interface FuelLogStateResult {
   trackingState: TrackingState;
   lastLog: FuelLog | null;
@@ -43,9 +51,9 @@ export const useFuelLogState = (
         result.canSubmit = false;
       }
 
-      // Check for large gap (more than 1000 km)
+      // Check for large gap (more than LARGE_MILEAGE_GAP km)
       const gap = currentMileage - result.lastLog.mileage;
-      if (gap > 1000) {
+      if (gap > LARGE_MILEAGE_GAP) {
         result.suggestions.push(
           'Large mileage gap detected. Consider using "Reset Tracking" if you missed multiple refuels.'
         );
@@ -73,8 +81,8 @@ export const useFuelLogState = (
       !result.lastLog.isBeforeRefuel
     ) {
       const fuelLevelIncrease = currentFuelLevel - result.lastLog.fuelLevel;
-      if (fuelLevelIncrease > 0.3) {
-        // Fuel increased by more than 30%
+      if (fuelLevelIncrease > FUEL_LEVEL_JUMP_THRESHOLD) {
+        // Fuel increased by more than threshold
         result.suggestions.push(
           'Looks like you refueled recently. Create a quick "before refuel" log or skip?'
         );
@@ -86,7 +94,7 @@ export const useFuelLogState = (
     if (
       currentFuelLevel !== undefined &&
       result.lastLog.fuelLevel !== undefined &&
-      Math.abs(currentFuelLevel - result.lastLog.fuelLevel) < 0.05
+      Math.abs(currentFuelLevel - result.lastLog.fuelLevel) < FUEL_LEVEL_UNCHANGED_THRESHOLD
     ) {
       result.suggestions.push('Same fuel level as last entry. Logging mileage only?');
     }
@@ -114,8 +122,8 @@ export const detectLogType = (
   const fuelLevelChange = currentFuelLevel - lastFuelLevel;
 
   // After refuel: fuel increased
-  if (fuelLevelChange > 0.1) {
-    const isPartialRefuel = currentFuelLevel < 0.9; // Not full tank
+  if (fuelLevelChange > REFUEL_DETECTION_THRESHOLD) {
+    const isPartialRefuel = currentFuelLevel < FULL_TANK_THRESHOLD; // Not full tank
     return {
       isBeforeRefuel: false,
       isAfterRefuel: true,
@@ -125,7 +133,7 @@ export const detectLogType = (
 
   // Before refuel: fuel decreased or stayed same
   if (fuelLevelChange <= 0) {
-    const isBeforeRefuel = currentFuelLevel < 0.5; // Less than half tank
+    const isBeforeRefuel = currentFuelLevel < LOW_FUEL_THRESHOLD; // Less than half tank
     return {
       isBeforeRefuel,
       isAfterRefuel: false,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, PanResponder } from 'react-native';
 import Svg, { Path, Circle, Line, G, Defs, LinearGradient, Stop } from 'react-native-svg';
 
@@ -14,6 +14,8 @@ const FuelGaugeSlider: React.FC<FuelGaugeSliderProps> = ({
   disabled = false 
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<View>(null);
+  const [containerLayout, setContainerLayout] = useState({ x: 0, y: 0 });
   
   const width = Dimensions.get('window').width - 80;
   const height = 180;
@@ -59,14 +61,21 @@ const FuelGaugeSlider: React.FC<FuelGaugeSliderProps> = ({
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => !disabled,
     onMoveShouldSetPanResponder: () => !disabled,
-    onPanResponderGrant: () => {
+    onPanResponderGrant: (evt) => {
       setIsDragging(true);
+      // Measure container position
+      if (containerRef.current) {
+        containerRef.current.measure((x, y, width, height, pageX, pageY) => {
+          setContainerLayout({ x: pageX, y: pageY });
+        });
+      }
     },
-    onPanResponderMove: (_, gestureState) => {
-      const touchX = gestureState.moveX;
-      const touchY = gestureState.moveY;
+    onPanResponderMove: (evt, gestureState) => {
+      // Use pageX/pageY from the event and subtract container position
+      const touchX = evt.nativeEvent.pageX - containerLayout.x;
+      const touchY = evt.nativeEvent.pageY - containerLayout.y;
       
-      // Convert touch position to angle
+      // Convert touch position to angle relative to center
       const dx = touchX - centerX;
       const dy = touchY - centerY;
       let angle = Math.atan2(dy, dx);
@@ -100,7 +109,15 @@ const FuelGaugeSlider: React.FC<FuelGaugeSliderProps> = ({
   
   return (
     <View style={styles.container}>
-      <View style={styles.gaugeContainer} {...panResponder.panHandlers}>
+      <View 
+        ref={containerRef}
+        style={styles.gaugeContainer} 
+        {...panResponder.panHandlers}
+        onLayout={(event) => {
+          const { x, y } = event.nativeEvent.layout;
+          setContainerLayout({ x, y });
+        }}
+      >
         <Svg width={width} height={height}>
           <Defs>
             <LinearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
