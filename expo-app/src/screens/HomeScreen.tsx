@@ -1,443 +1,361 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Animated,
   Dimensions,
-  Modal,
-} from 'react-native';
-import { useCarContext } from '../contexts/CarContext';
-import { LinearGradient } from 'expo-linear-gradient';
+  ImageBackground,
+  StatusBar,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useCarContext } from "../contexts/CarContext";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
-const EMOJI_OPTIONS = ['🚗', '🚙', '🚕', '🚓', '🏎️', '🚐', '🚛', '🚚', '🏍️', '🛵'];
-const BACKGROUND_COLORS = [
-  { name: 'Blue', primary: '#007AFF', secondary: '#5AC8FA' },
-  { name: 'Purple', primary: '#AF52DE', secondary: '#BF5AF2' },
-  { name: 'Pink', primary: '#FF2D55', secondary: '#FF6482' },
-  { name: 'Orange', primary: '#FF9500', secondary: '#FFB340' },
-  { name: 'Green', primary: '#34C759', secondary: '#62E884' },
-  { name: 'Red', primary: '#FF3B30', secondary: '#FF6961' },
+// Tab options for filtering logs
+const FILTER_TABS = [
+  { id: "all", label: "All" },
+  { id: "fuel", label: "Fuel" },
+  { id: "oil", label: "Oil change" },
+  { id: "maintenance", label: "Maintenance" },
 ];
 
 const HomeScreen: React.FC = () => {
-  const { carDetails, updateCarDetails, oilChanges, fuelLogs, expenses, calculateFuelAverage } = useCarContext();
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
-  const [bounceAnim] = useState(new Animated.Value(1));
+  const navigation = useNavigation();
+  const { carDetails, oilChanges, fuelLogs, expenses } = useCarContext();
+  const [activeTab, setActiveTab] = useState("all");
 
-  const currentEmoji = carDetails?.emoji || '🚗';
-  const currentBgIndex = BACKGROUND_COLORS.findIndex(
-    bg => bg.primary === (carDetails?.backgroundColor || '#007AFF')
-  );
-  const currentBg = BACKGROUND_COLORS[currentBgIndex !== -1 ? currentBgIndex : 0];
+  // Calculate total log count
+  const totalLogs = fuelLogs.length + oilChanges.length + expenses.length;
 
-  const startBounceAnimation = () => {
-    Animated.sequence([
-      Animated.timing(bounceAnim, {
-        toValue: 1.2,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(bounceAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  // Get the car display name
+  const carDisplayName =
+    carDetails?.make && carDetails?.model
+      ? `${carDetails.year} ${carDetails.make} ${carDetails.model}`
+      : "2024 Audi Q8";
+
+  // Get current mileage
+  const currentMileage = carDetails?.currentMileage || 12450;
+
+  // Get filtered logs based on active tab
+  const getFilteredLogs = () => {
+    switch (activeTab) {
+      case "fuel":
+        return fuelLogs.map((log) => ({ type: "fuel", ...log }));
+      case "oil":
+        return oilChanges.map((log) => ({ type: "oil", ...log }));
+      case "maintenance":
+        return expenses
+          .filter((e) => e.category === "Maintenance")
+          .map((log) => ({ type: "maintenance", ...log }));
+      default:
+        return [
+          ...fuelLogs.map((log) => ({ type: "fuel", ...log })),
+          ...oilChanges.map((log) => ({ type: "oil", ...log })),
+          ...expenses.map((log) => ({ type: "expense", ...log })),
+        ];
+    }
   };
 
-  const handleEmojiSelect = async (emoji: string) => {
-    const updatedDetails = {
-      id: carDetails?.id || Date.now().toString(),
-      name: carDetails?.name || 'My Car',
-      make: carDetails?.make || '',
-      model: carDetails?.model || '',
-      year: carDetails?.year || new Date().getFullYear(),
-      color: carDetails?.color || '',
-      licensePlate: carDetails?.licensePlate || '',
-      currentMileage: carDetails?.currentMileage || 0,
-      images: carDetails?.images || [],
-      emoji: emoji,
-      backgroundStyle: (carDetails?.backgroundStyle || 'gradient') as 'solid' | 'gradient' | 'animated',
-      backgroundColor: carDetails?.backgroundColor || '#007AFF',
-      secondaryColor: carDetails?.secondaryColor || '#5AC8FA',
-    };
-    await updateCarDetails(updatedDetails);
-    setShowEmojiPicker(false);
-    startBounceAnimation();
-  };
+  const filteredLogs = getFilteredLogs();
 
-  const handleBackgroundSelect = async (bg: typeof BACKGROUND_COLORS[0]) => {
-    const updatedDetails = {
-      id: carDetails?.id || Date.now().toString(),
-      name: carDetails?.name || 'My Car',
-      make: carDetails?.make || '',
-      model: carDetails?.model || '',
-      year: carDetails?.year || new Date().getFullYear(),
-      color: carDetails?.color || '',
-      licensePlate: carDetails?.licensePlate || '',
-      currentMileage: carDetails?.currentMileage || 0,
-      images: carDetails?.images || [],
-      emoji: carDetails?.emoji || '🚗',
-      backgroundStyle: 'gradient' as const,
-      backgroundColor: bg.primary,
-      secondaryColor: bg.secondary,
-    };
-    await updateCarDetails(updatedDetails);
-    setShowBackgroundPicker(false);
+  const getTabCount = (tabId: string) => {
+    switch (tabId) {
+      case "fuel":
+        return fuelLogs.length;
+      case "oil":
+        return oilChanges.length;
+      case "maintenance":
+        return expenses.filter((e) => e.category === "Maintenance").length;
+      default:
+        return totalLogs;
+    }
   };
-
-  const fuelAverage = calculateFuelAverage();
-  const latestOilChange = oilChanges[0];
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   return (
-    <ScrollView style={styles.container}>
-      <LinearGradient
-        colors={[currentBg.primary, currentBg.secondary]}
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Hero Section with Car Image */}
+      <ImageBackground
+        source={{
+          uri: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800",
+        }}
         style={styles.heroSection}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        resizeMode="cover"
       >
-        <TouchableOpacity
-          style={styles.emojiContainer}
-          onPress={() => setShowEmojiPicker(true)}
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)"]}
+          style={styles.heroGradient}
         >
-          <Animated.Text
-            style={[
-              styles.carEmoji,
-              { transform: [{ scale: bounceAnim }] }
-            ]}
+          {/* Edit Button */}
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => navigation.navigate("Car Details" as never)}
           >
-            {currentEmoji}
-          </Animated.Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.carName}>{carDetails?.name || 'My Car'}</Text>
-        <Text style={styles.carSubtitle}>
-          {carDetails?.make && carDetails?.model
-            ? `${carDetails.year} ${carDetails.make} ${carDetails.model}`
-            : 'Tap to add car details'}
-        </Text>
+            <Ionicons name="pencil" size={18} color="#FFFFFF" />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.customizeButton}
-          onPress={() => setShowBackgroundPicker(true)}
+          {/* Car Info */}
+          <View style={styles.carInfoContainer}>
+            <Text style={styles.carTitle}>{carDisplayName}</Text>
+            <View style={styles.mileageContainer}>
+              <Ionicons name="speedometer-outline" size={16} color="#FFFFFF" />
+              <Text style={styles.mileageText}>
+                {currentMileage.toLocaleString()} mi
+              </Text>
+            </View>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
+
+      {/* Filter Tabs */}
+      <View style={styles.tabsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsContainer}
         >
-          <Text style={styles.customizeButtonText}>🎨 Customize</Text>
-        </TouchableOpacity>
-      </LinearGradient>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>⛽</Text>
-          <Text style={styles.statValue}>
-            {fuelAverage > 0 ? `${fuelAverage.toFixed(2)}` : '--'}
-          </Text>
-          <Text style={styles.statLabel}>km/L Average</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>🛢️</Text>
-          <Text style={styles.statValue}>
-            {latestOilChange
-              ? new Date(latestOilChange.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-              : '--'}
-          </Text>
-          <Text style={styles.statLabel}>Last Oil Change</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>💰</Text>
-          <Text style={styles.statValue}>
-            {totalExpenses > 0 ? `$${totalExpenses.toFixed(0)}` : '$0'}
-          </Text>
-          <Text style={styles.statLabel}>Total Expenses</Text>
-        </View>
+          {FILTER_TABS.map((tab) => {
+            const count = getTabCount(tab.id);
+            const isActive = activeTab === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                style={[styles.tab, isActive && styles.tabActive]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Text
+                  style={[styles.tabText, isActive && styles.tabTextActive]}
+                >
+                  {tab.label}{" "}
+                  {tab.id === "all" && count > 0 ? `(${count})` : ""}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      <View style={styles.quickActionsContainer}>
-        <Text style={styles.sectionTitle}>Quick Stats</Text>
-        
-        <View style={styles.quickActionCard}>
-          <Text style={styles.quickActionIcon}>📊</Text>
-          <View style={styles.quickActionContent}>
-            <Text style={styles.quickActionTitle}>Fuel Logs</Text>
-            <Text style={styles.quickActionValue}>{fuelLogs.length} entries</Text>
-          </View>
-        </View>
-
-        <View style={styles.quickActionCard}>
-          <Text style={styles.quickActionIcon}>🔧</Text>
-          <View style={styles.quickActionContent}>
-            <Text style={styles.quickActionTitle}>Oil Changes</Text>
-            <Text style={styles.quickActionValue}>{oilChanges.length} records</Text>
-          </View>
-        </View>
-
-        <View style={styles.quickActionCard}>
-          <Text style={styles.quickActionIcon}>💳</Text>
-          <View style={styles.quickActionContent}>
-            <Text style={styles.quickActionTitle}>Expenses</Text>
-            <Text style={styles.quickActionValue}>{expenses.length} transactions</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Emoji Picker Modal */}
-      <Modal
-        visible={showEmojiPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowEmojiPicker(false)}
+      {/* Content Area */}
+      <ScrollView
+        style={styles.contentArea}
+        contentContainerStyle={styles.contentContainer}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose Your Car Emoji</Text>
-            <View style={styles.emojiGrid}>
-              {EMOJI_OPTIONS.map((emoji, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.emojiOption}
-                  onPress={() => handleEmojiSelect(emoji)}
-                >
-                  <Text style={styles.emojiOptionText}>{emoji}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowEmojiPicker(false)}
-            >
-              <Text style={styles.modalCloseText}>Cancel</Text>
-            </TouchableOpacity>
+        {filteredLogs.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="document-text-outline" size={64} color="#C7C7CC" />
+            <Text style={styles.emptyStateTitle}>No logs yet</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Start tracking your vehicle's history
+            </Text>
           </View>
-        </View>
-      </Modal>
-
-      {/* Background Picker Modal */}
-      <Modal
-        visible={showBackgroundPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowBackgroundPicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose Background</Text>
-            <View style={styles.backgroundGrid}>
-              {BACKGROUND_COLORS.map((bg, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.backgroundOption}
-                  onPress={() => handleBackgroundSelect(bg)}
-                >
-                  <LinearGradient
-                    colors={[bg.primary, bg.secondary]}
-                    style={styles.backgroundPreview}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+        ) : (
+          filteredLogs.map((log, index) => {
+            // Get cost/amount safely
+            const logCost =
+              "cost" in log ? log.cost : "amount" in log ? log.amount : 0;
+            return (
+              <View key={`${log.type}-${index}`} style={styles.logCard}>
+                <View style={styles.logIconContainer}>
+                  <Ionicons
+                    name={
+                      log.type === "fuel"
+                        ? "flame"
+                        : log.type === "oil"
+                          ? "water"
+                          : log.type === "maintenance"
+                            ? "construct"
+                            : "receipt"
+                    }
+                    size={24}
+                    color="#007AFF"
                   />
-                  <Text style={styles.backgroundName}>{bg.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowBackgroundPicker(false)}
-            >
-              <Text style={styles.modalCloseText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
+                </View>
+                <View style={styles.logContent}>
+                  <Text style={styles.logTitle}>
+                    {log.type === "fuel"
+                      ? "Fuel"
+                      : log.type === "oil"
+                        ? "Oil Change"
+                        : log.type === "maintenance"
+                          ? "Maintenance"
+                          : "Expense"}
+                  </Text>
+                  <Text style={styles.logDate}>
+                    {new Date(log.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </Text>
+                </View>
+                <View style={styles.logAmount}>
+                  <Text style={styles.logAmountText}>
+                    ${logCost.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: "#F5F5F7",
   },
   heroSection: {
     width: width,
-    height: height * 0.4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 20,
+    height: height * 0.35,
   },
-  emojiContainer: {
-    marginBottom: 20,
+  heroGradient: {
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 20,
   },
-  carEmoji: {
-    fontSize: 120,
+  editButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  carName: {
+  editButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  carInfoContainer: {
+    marginBottom: 10,
+  },
+  carTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 5,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 8,
   },
-  carSubtitle: {
+  mileageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  mileageText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
+    marginLeft: 6,
     opacity: 0.9,
   },
-  customizeButton: {
-    marginTop: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+  tabsWrapper: {
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+  },
+  tabsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
     borderRadius: 20,
+    backgroundColor: "#F5F5F7",
   },
-  customizeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+  tabActive: {
+    backgroundColor: "transparent",
+    borderBottomWidth: 2,
+    borderBottomColor: "#007AFF",
+    borderRadius: 0,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 15,
-    paddingVertical: 20,
+  tabText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#8E8E93",
   },
-  statCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 15,
-    alignItems: 'center',
-    width: width * 0.28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  tabTextActive: {
+    color: "#007AFF",
+    fontWeight: "600",
   },
-  statIcon: {
-    fontSize: 32,
-    marginBottom: 8,
+  contentArea: {
+    flex: 1,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 4,
+  contentContainer: {
+    padding: 16,
+    flexGrow: 1,
   },
-  statLabel: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'center',
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 80,
   },
-  quickActionsContainer: {
-    padding: 20,
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#3C3C43",
+    marginTop: 16,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#000',
+  emptyStateSubtitle: {
+    fontSize: 15,
+    color: "#8E8E93",
+    marginTop: 8,
   },
-  quickActionCard: {
-    backgroundColor: '#FFFFFF',
+  logCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
+    padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     elevation: 2,
   },
-  quickActionIcon: {
-    fontSize: 36,
-    marginRight: 15,
+  logIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#F0F6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
   },
-  quickActionContent: {
+  logContent: {
     flex: 1,
   },
-  quickActionTitle: {
+  logTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#1C1C1E",
     marginBottom: 4,
   },
-  quickActionValue: {
+  logDate: {
     fontSize: 14,
-    color: '#666',
+    color: "#8E8E93",
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  logAmount: {
+    alignItems: "flex-end",
   },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    width: width * 0.85,
-    maxHeight: height * 0.7,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  emojiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
-  emojiOption: {
-    width: width * 0.15,
-    height: width * 0.15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  emojiOptionText: {
-    fontSize: 50,
-  },
-  backgroundGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-  },
-  backgroundOption: {
-    alignItems: 'center',
-    marginBottom: 20,
-    width: width * 0.25,
-  },
-  backgroundPreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginBottom: 8,
-  },
-  backgroundName: {
-    fontSize: 12,
-    color: '#666',
-  },
-  modalCloseButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 10,
-  },
-  modalCloseText: {
-    color: '#FFFFFF',
+  logAmountText: {
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#1C1C1E",
   },
 });
 
