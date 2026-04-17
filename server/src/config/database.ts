@@ -41,31 +41,34 @@ const sequelize = DATABASE_URL
 
 export default sequelize;
 
-export const connectDB = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
-    
-    // Sync models - use alter in development, basic sync in production
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      console.log('✅ Database models synchronized (development mode).');
-    } else {
-      // In production, only create tables if they don't exist
-      await sequelize.sync({ alter: false });
-      console.log('✅ Database models synchronized (production mode).');
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const connectDB = async (retries = 5, delayMs = 3000) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ Database connection established successfully.');
+
+      if (process.env.NODE_ENV === 'development') {
+        await sequelize.sync({ alter: true });
+        console.log('✅ Database models synchronized (development mode).');
+      } else {
+        await sequelize.sync({ alter: false });
+        console.log('✅ Database models synchronized (production mode).');
+      }
+      return; // success
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ DB connection attempt ${attempt}/${retries} failed: ${errorMessage}`);
+
+      if (attempt < retries) {
+        const wait = delayMs * attempt; // linear back-off: 3s, 6s, 9s, 12s
+        console.log(`⏳ Retrying in ${wait / 1000}s...`);
+        await sleep(wait);
+      } else {
+        console.error('💥 All database connection attempts failed.');
+        throw error;
+      }
     }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('❌ Unable to connect to the database:', errorMessage);
-    console.error('Full error details:', error);
-    
-    // In production, we want to fail fast and let the platform restart the service
-    if (process.env.NODE_ENV === 'production') {
-      console.error('💥 Database connection failed in production. Exiting...');
-      process.exit(1);
-    }
-    
-    throw error;
   }
 };

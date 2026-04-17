@@ -68,17 +68,18 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
+// Start server - bind the port immediately so Render detects it,
+// then connect to the DB with retry/back-off logic.
 const startServer = async () => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚗 Motor API server is running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+
   try {
     await connectDB();
-    // Listen on all interfaces (required for Render and other PaaS providers)
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚗 Motor API server is running on port ${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('Failed to connect to database after all retries:', error);
     process.exit(1);
   }
 };
