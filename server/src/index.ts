@@ -1,35 +1,41 @@
-import express, { Application, Request, Response } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import dotenv from 'dotenv';
-import swaggerUi from 'swagger-ui-express';
-import { connectDB } from './config/database';
-import swaggerSpec from './config/swagger';
-import carRoutes from './routes/carRoutes';
-import oilChangeRoutes from './routes/oilChangeRoutes';
-import fuelLogRoutes from './routes/fuelLogRoutes';
-import expenseRoutes from './routes/expenseRoutes';
+import express, { Application, Request, Response } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import { connectDB } from "./config/database";
+import swaggerSpec from "./config/swagger";
+import carRoutes from "./routes/carRoutes";
+import oilChangeRoutes from "./routes/oilChangeRoutes";
+import fuelLogRoutes from "./routes/fuelLogRoutes";
+import expenseRoutes from "./routes/expenseRoutes";
 
 dotenv.config();
 
 const app: Application = express();
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || "3000", 10);
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-}));
-app.use(morgan('dev'));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+  }),
+);
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Motor API Documentation',
-}));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Motor API Documentation",
+  }),
+);
 
 // Health check route
 /**
@@ -47,39 +53,39 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
  *             schema:
  *               $ref: '#/components/schemas/HealthCheck'
  */
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', message: 'Motor API is running' });
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "ok", message: "Motor API is running" });
 });
 
 // API Routes
-app.use('/api/cars', carRoutes);
-app.use('/api/cars', oilChangeRoutes);
-app.use('/api/cars', fuelLogRoutes);
-app.use('/api/cars', expenseRoutes);
+app.use("/api/cars", carRoutes);
+app.use("/api/cars", oilChangeRoutes);
+app.use("/api/cars", fuelLogRoutes);
+app.use("/api/cars", expenseRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: "Route not found" });
 });
 
 // Error handler
 app.use((err: Error, req: Request, res: Response, next: any) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ error: "Something went wrong!" });
 });
 
 // Start server - bind the port immediately so Render detects it,
 // then connect to the DB with retry/back-off logic.
 const startServer = async () => {
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚗 Motor API server is running on port ${PORT}`);
-    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
   });
 
   try {
     await connectDB();
   } catch (error) {
-    console.error('Failed to connect to database after all retries:', error);
+    console.error("Failed to connect to database after all retries:", error);
     process.exit(1);
   }
 };
