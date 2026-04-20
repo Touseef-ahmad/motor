@@ -1,29 +1,45 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database';
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "../config/database";
 
 interface ExpenseAttributes {
   id: string;
   carId: string;
   date: string;
-  category: 'Maintenance' | 'Fuel' | 'Insurance' | 'Repair' | 'Registration' | 'Other';
+  category:
+    | "Maintenance"
+    | "Fuel"
+    | "Insurance"
+    | "Repair"
+    | "Registration"
+    | "Other";
   description: string;
   amount: number;
   mileage?: number;
   notes?: string;
+  externalId?: string;
 }
 
-interface ExpenseCreationAttributes extends Optional<ExpenseAttributes, 'id'> {}
+interface ExpenseCreationAttributes extends Optional<ExpenseAttributes, "id"> {}
 
-class Expense extends Model<ExpenseAttributes, ExpenseCreationAttributes>
-  implements ExpenseAttributes {
+class Expense
+  extends Model<ExpenseAttributes, ExpenseCreationAttributes>
+  implements ExpenseAttributes
+{
   public id!: string;
   public carId!: string;
   public date!: string;
-  public category!: 'Maintenance' | 'Fuel' | 'Insurance' | 'Repair' | 'Registration' | 'Other';
+  public category!:
+    | "Maintenance"
+    | "Fuel"
+    | "Insurance"
+    | "Repair"
+    | "Registration"
+    | "Other";
   public description!: string;
   public amount!: number;
   public mileage?: number;
   public notes?: string;
+  public externalId?: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -40,19 +56,26 @@ Expense.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'car_details',
-        key: 'id',
+        model: "car_details",
+        key: "id",
       },
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
     category: {
-      type: DataTypes.ENUM('Maintenance', 'Fuel', 'Insurance', 'Repair', 'Registration', 'Other'),
+      type: DataTypes.ENUM(
+        "Maintenance",
+        "Fuel",
+        "Insurance",
+        "Repair",
+        "Registration",
+        "Other",
+      ),
       allowNull: false,
-      defaultValue: 'Other',
+      defaultValue: "Other",
     },
     description: {
       type: DataTypes.STRING,
@@ -70,12 +93,16 @@ Expense.init(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    externalId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,
-    tableName: 'expenses',
+    tableName: "expenses",
     timestamps: true,
-  }
+  },
 );
 
 export default Expense;

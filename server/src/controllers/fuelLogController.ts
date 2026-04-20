@@ -1,32 +1,44 @@
-import { Request, Response } from 'express';
-import { FuelLog } from '../models';
-import { Op } from 'sequelize';
+import { Request, Response } from "express";
+import { FuelLog } from "../models";
+import { Op } from "sequelize";
 
 export const getFuelLogs = async (req: Request, res: Response) => {
   try {
     const { carId } = req.params;
     const fuelLogs = await FuelLog.findAll({
       where: { carId },
-      order: [['date', 'DESC']],
+      order: [["date", "DESC"]],
     });
     res.json(fuelLogs);
   } catch (error) {
-    console.error('Error fetching fuel logs:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching fuel logs:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 export const createFuelLog = async (req: Request, res: Response) => {
   try {
     const { carId } = req.params;
+    const { externalId, ...rest } = req.body;
+
+    // Idempotency: if the client provided an externalId, return the existing
+    // record if a previous retry already created it.
+    if (externalId) {
+      const existing = await FuelLog.findOne({ where: { externalId } });
+      if (existing) {
+        return res.status(200).json(existing);
+      }
+    }
+
     const fuelLog = await FuelLog.create({
-      ...req.body,
+      ...rest,
+      ...(externalId ? { externalId } : {}),
       carId,
     });
     res.status(201).json(fuelLog);
   } catch (error) {
-    console.error('Error creating fuel log:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error creating fuel log:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -36,14 +48,14 @@ export const deleteFuelLog = async (req: Request, res: Response) => {
     const fuelLog = await FuelLog.findByPk(id);
 
     if (!fuelLog) {
-      return res.status(404).json({ error: 'Fuel log not found' });
+      return res.status(404).json({ error: "Fuel log not found" });
     }
 
     await fuelLog.destroy();
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting fuel log:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error deleting fuel log:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -52,7 +64,7 @@ export const getFuelAverage = async (req: Request, res: Response) => {
     const { carId } = req.params;
     const fuelLogs = await FuelLog.findAll({
       where: { carId },
-      order: [['mileage', 'ASC']],
+      order: [["mileage", "ASC"]],
     });
 
     if (fuelLogs.length < 2) {
@@ -73,7 +85,7 @@ export const getFuelAverage = async (req: Request, res: Response) => {
     const average = totalFuel > 0 ? totalDistance / totalFuel : 0;
     res.json({ average });
   } catch (error) {
-    console.error('Error calculating fuel average:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error calculating fuel average:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

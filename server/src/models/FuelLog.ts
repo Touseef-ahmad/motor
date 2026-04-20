@@ -1,5 +1,5 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database';
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "../config/database";
 
 interface FuelLogAttributes {
   id: string;
@@ -9,7 +9,7 @@ interface FuelLogAttributes {
   liters: number;
   cost: number;
   pricePerLiter: number;
-  fuelType: 'Regular' | 'Premium' | 'Diesel' | 'Electric';
+  fuelType: "Regular" | "Premium" | "Diesel" | "Electric";
   fullTank: boolean;
   notes?: string;
   fuelLevel?: number;
@@ -18,12 +18,15 @@ interface FuelLogAttributes {
   linkedLogId?: string;
   trackingState?: string;
   isPartialRefuel?: boolean;
+  externalId?: string;
 }
 
-interface FuelLogCreationAttributes extends Optional<FuelLogAttributes, 'id'> {}
+interface FuelLogCreationAttributes extends Optional<FuelLogAttributes, "id"> {}
 
-class FuelLog extends Model<FuelLogAttributes, FuelLogCreationAttributes>
-  implements FuelLogAttributes {
+class FuelLog
+  extends Model<FuelLogAttributes, FuelLogCreationAttributes>
+  implements FuelLogAttributes
+{
   public id!: string;
   public carId!: string;
   public date!: string;
@@ -31,7 +34,7 @@ class FuelLog extends Model<FuelLogAttributes, FuelLogCreationAttributes>
   public liters!: number;
   public cost!: number;
   public pricePerLiter!: number;
-  public fuelType!: 'Regular' | 'Premium' | 'Diesel' | 'Electric';
+  public fuelType!: "Regular" | "Premium" | "Diesel" | "Electric";
   public fullTank!: boolean;
   public notes?: string;
   public fuelLevel?: number;
@@ -40,6 +43,7 @@ class FuelLog extends Model<FuelLogAttributes, FuelLogCreationAttributes>
   public linkedLogId?: string;
   public trackingState?: string;
   public isPartialRefuel?: boolean;
+  public externalId?: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -56,10 +60,10 @@ FuelLog.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'car_details',
-        key: 'id',
+        model: "car_details",
+        key: "id",
       },
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     date: {
       type: DataTypes.DATEONLY,
@@ -82,9 +86,9 @@ FuelLog.init(
       allowNull: false,
     },
     fuelType: {
-      type: DataTypes.ENUM('Regular', 'Premium', 'Diesel', 'Electric'),
+      type: DataTypes.ENUM("Regular", "Premium", "Diesel", "Electric"),
       allowNull: false,
-      defaultValue: 'Regular',
+      defaultValue: "Regular",
     },
     fullTank: {
       type: DataTypes.BOOLEAN,
@@ -110,7 +114,7 @@ FuelLog.init(
       defaultValue: false,
     },
     linkedLogId: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     trackingState: {
@@ -122,12 +126,16 @@ FuelLog.init(
       allowNull: true,
       defaultValue: false,
     },
+    externalId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,
-    tableName: 'fuel_logs',
+    tableName: "fuel_logs",
     timestamps: true,
-  }
+  },
 );
 
 export default FuelLog;

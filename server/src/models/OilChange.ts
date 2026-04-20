@@ -1,5 +1,5 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database';
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "../config/database";
 
 interface OilChangeAttributes {
   id: string;
@@ -10,12 +10,18 @@ interface OilChangeAttributes {
   notes?: string;
   nextChangeMileage?: number;
   nextChangeDate?: string;
+  externalId?: string;
 }
 
-interface OilChangeCreationAttributes extends Optional<OilChangeAttributes, 'id'> {}
+interface OilChangeCreationAttributes extends Optional<
+  OilChangeAttributes,
+  "id"
+> {}
 
-class OilChange extends Model<OilChangeAttributes, OilChangeCreationAttributes>
-  implements OilChangeAttributes {
+class OilChange
+  extends Model<OilChangeAttributes, OilChangeCreationAttributes>
+  implements OilChangeAttributes
+{
   public id!: string;
   public carId!: string;
   public date!: string;
@@ -24,6 +30,7 @@ class OilChange extends Model<OilChangeAttributes, OilChangeCreationAttributes>
   public notes?: string;
   public nextChangeMileage?: number;
   public nextChangeDate?: string;
+  public externalId?: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -40,10 +47,10 @@ OilChange.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'car_details',
-        key: 'id',
+        model: "car_details",
+        key: "id",
       },
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     date: {
       type: DataTypes.DATEONLY,
@@ -69,12 +76,16 @@ OilChange.init(
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
+    externalId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,
-    tableName: 'oil_changes',
+    tableName: "oil_changes",
     timestamps: true,
-  }
+  },
 );
 
 export default OilChange;
