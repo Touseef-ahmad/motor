@@ -10,6 +10,7 @@ import carRoutes from "./routes/carRoutes";
 import oilChangeRoutes from "./routes/oilChangeRoutes";
 import fuelLogRoutes from "./routes/fuelLogRoutes";
 import expenseRoutes from "./routes/expenseRoutes";
+import authRoutes from "./routes/authRoutes";
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 // API Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api/cars", oilChangeRoutes);
 app.use("/api/cars", fuelLogRoutes);

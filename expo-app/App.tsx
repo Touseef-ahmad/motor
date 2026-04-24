@@ -1,9 +1,10 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
+import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 import { CarProvider } from "./src/contexts/CarContext";
 import HomeScreen from "./src/screens/HomeScreen";
 import StoreScreen from "./src/screens/StoreScreen";
@@ -12,6 +13,8 @@ import OilChangeScreen from "./src/screens/OilChangeScreen";
 import FuelLogsScreen from "./src/screens/FuelLogsScreen";
 import ExpensesScreen from "./src/screens/ExpensesScreen";
 import CarDetailsScreen from "./src/screens/CarDetailsScreen";
+import LoginScreen from "./src/screens/LoginScreen";
+import SignUpScreen from "./src/screens/SignUpScreen";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
 
 const Tab = createBottomTabNavigator();
@@ -70,42 +73,73 @@ function MainTabs() {
   );
 }
 
-export default function App() {
+/**
+ * Root navigator: renders the Login screen when unauthenticated, or the full
+ * authenticated app (wrapped in CarProvider) when a session exists.
+ * CarProvider intentionally lives here so it mounts fresh after every login,
+ * guaranteeing React state is clean for the new user.
+ */
+function RootNavigator() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+      </Stack.Navigator>
+    );
+  }
+
   return (
     <CarProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: "#007AFF",
-            },
-            headerTintColor: "#fff",
-            headerTitleStyle: {
-              fontWeight: "bold",
-            },
-          }}
-        >
-          <Stack.Screen
-            name="Onboarding"
-            component={OnboardingScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="MainTabs"
-            component={MainTabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="Car Details" component={CarDetailsScreen} />
-          <Stack.Screen name="Oil Change" component={OilChangeScreen} />
-          <Stack.Screen name="Fuel Logs" component={FuelLogsScreen} />
-          <Stack.Screen name="Expenses" component={ExpensesScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: "#007AFF" },
+          headerTintColor: "#fff",
+          headerTitleStyle: { fontWeight: "bold" },
+        }}
+      >
+        <Stack.Screen
+          name="MainTabs"
+          component={MainTabs}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="Car Details" component={CarDetailsScreen} />
+        <Stack.Screen name="Oil Change" component={OilChangeScreen} />
+        <Stack.Screen name="Fuel Logs" component={FuelLogsScreen} />
+        <Stack.Screen name="Expenses" component={ExpensesScreen} />
+      </Stack.Navigator>
     </CarProvider>
   );
 }
 
+export default function App() {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <RootNavigator />
+      </NavigationContainer>
+    </AuthProvider>
+  );
+}
+
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+  },
   activeTabIcon: {
     backgroundColor: "#E8F1FF",
     paddingHorizontal: 16,

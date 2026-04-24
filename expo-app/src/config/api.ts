@@ -4,12 +4,20 @@
 
 export const USE_BACKEND = true; // Backend is now deployed and ready!
 
-export const API_URL = __DEV__ 
-  ? 'http://localhost:3000/api'  // Development
-  : 'https://motor-api-ogln.onrender.com/api'; // Production
+export const API_URL = __DEV__
+  ? "http://localhost:3000/api" // Development
+  : "https://motor-api-ogln.onrender.com/api"; // Production
 
 export const API_ENDPOINTS = {
-  cars: '/cars',
+  // Auth (TODO: implement on server — see server/AUTH_TODO.md)
+  authLogin: "/auth/login",
+  authRegister: "/auth/register",
+  authRefresh: "/auth/refresh",
+  authLogout: "/auth/logout",
+  authMe: "/auth/me",
+
+  // Cars
+  cars: "/cars",
   carDetails: (carId: string) => `/cars/${carId}`,
   oilChanges: (carId: string) => `/cars/${carId}/oil-changes`,
   fuelLogs: (carId: string) => `/cars/${carId}/fuel-logs`,

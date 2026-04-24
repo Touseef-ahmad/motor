@@ -19,23 +19,19 @@ const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation();
 
   const handleSignUpWithEmail = () => {
-    // Navigate to main app for now - replace with actual auth flow
-    navigation.navigate("MainTabs" as never);
+    navigation.navigate("SignUp" as never);
   };
 
   const handleGoogleSignIn = () => {
     // TODO: Implement Google Sign In
-    navigation.navigate("MainTabs" as never);
   };
 
   const handleAppleSignIn = () => {
     // TODO: Implement Apple Sign In
-    navigation.navigate("MainTabs" as never);
   };
 
   const handleSignIn = () => {
-    // TODO: Navigate to Sign In screen
-    navigation.navigate("MainTabs" as never);
+    navigation.navigate("Login" as never);
   };
 
   return (

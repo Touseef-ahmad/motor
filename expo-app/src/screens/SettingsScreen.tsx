@@ -6,9 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SettingItem {
   id: string;
@@ -22,6 +24,7 @@ interface SettingItem {
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { user, logout } = useAuth();
   const [notifications, setNotifications] = React.useState(true);
   const [darkMode, setDarkMode] = React.useState(false);
   const [autoBackup, setAutoBackup] = React.useState(true);
@@ -133,6 +136,21 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
+  const handleSignOut = () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out? Your data will be cleared from this device.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: logout,
+        },
+      ],
+    );
+  };
+
   const renderSettingItem = (item: SettingItem) => (
     <TouchableOpacity
       key={item.id}
@@ -181,6 +199,7 @@ const SettingsScreen: React.FC = () => {
     >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
+        {user && <Text style={styles.headerSubtitle}>{user.email}</Text>}
       </View>
 
       <View style={styles.section}>
@@ -201,6 +220,19 @@ const SettingsScreen: React.FC = () => {
         <Text style={styles.sectionTitle}>SUPPORT</Text>
         <View style={styles.sectionContent}>
           {supportSettings.map(renderSettingItem)}
+        </View>
+      </View>
+
+      {/* Sign Out */}
+      <View style={styles.section}>
+        <View style={styles.sectionContent}>
+          <TouchableOpacity
+            style={styles.signOutButton}
+            onPress={handleSignOut}
+          >
+            <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -225,6 +257,11 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: "bold",
     color: "#1C1C1E",
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#8E8E93",
+    marginTop: 4,
   },
   section: {
     marginTop: 24,
@@ -270,6 +307,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#8E8E93",
     marginTop: 2,
+  },
+  signOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  signOutText: {
+    fontSize: 17,
+    color: "#FF3B30",
+    fontWeight: "500",
   },
 });
 
